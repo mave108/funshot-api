@@ -1,9 +1,9 @@
 import  express from "express";
-import  tagRouter from './tag/tag';
+import  tagRouter from './tags/tags';
 
     let router = express.Router();
 
-    router.use('/tag', tagRouter);
+    router.use('/tags', tagRouter);
 
   // Export the router
   export default
