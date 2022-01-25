@@ -30,7 +30,7 @@ router.get('/', async (req: Request, res: Response, next:NextFunction) => {
                 .send();       
        }     
        return new HTTPResponse(res)
-                .setStatus(HTTPStatus.NOT_FOUND)
+                .setStatus(HTTPStatus.BAD_REQUEST)
                 .setMsg(HTTPMessage.NOT_FOUND)                
                 .send();  
        
@@ -44,15 +44,23 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
     try {                                                                 
             //save post data to hash
             const hashId = uuidv4();
-            const {title = '',description = '', uid = 1, tags = [], video_id = ''} = req.body as PostProps;                        
+            const {
+                title = '',
+                description = '', 
+                uid = 1, 
+                tags = [],
+                video_id = '', 
+                s3_url = ''
+                } = req.body as PostProps;                        
             const postObj = {
                 'title': title,
                 'description': description,
                 'tag_identifier': `POST::${hashId}::TAGS`,
                 'video_id': video_id,
+                's3_url': s3_url,
                 'uid': uid,
                 'view': 1,
-                'date': new Date().getTime()
+                'timestamp': new Date().getTime()
             }                
             const hashResp = await redisClient.hSet(`POST::${hashId}`, postObj);  
             //save tags to set
@@ -77,7 +85,33 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
 });
 
 router.delete('/', async (req: Request, res: Response, next:NextFunction) => {
-
+  try {
+      const {post_ids} = req.body;
+      if (post_ids.length > 0) {
+            let tagResp, userRest, listResp, hashresp;
+            await Promise.all([...post_ids].map( async (pid) => {
+                tagResp  = await redisClient.del(`POST::${pid}::TAGS`);
+                userRest = await redisClient.del(`USER::${pid}::POSTS`);
+                listResp = await redisClient.lRem(`POSTS`, 1, pid);
+                hashresp = await redisClient.del(`POST::${pid}`);
+            }));
+            return new HTTPResponse(res)
+                .setStatus(HTTPStatus.CREATED)
+                .setMsg(HTTPMessage.DELETED)
+                .setData('recordCount',(tagResp || 0) + (userRest || 0) + (listResp || 0) +(hashresp || 0))
+                .send();
+        }
+        return new HTTPResponse(res)
+            .setStatus(HTTPStatus.BAD_REQUEST)
+            .setMsg(HTTPMessage.NOT_FOUND)
+            .send();
+      
+  } catch (e) {
+    new HTTPResponse(res)
+        .setStatus(HTTPStatus.INTERNAL_SERVER_ERROR)
+        .setMsg(HTTPMessage.SOMETHING_WENT_WRONG)
+        .send(); 
+  }
 });
 
 export default router;
