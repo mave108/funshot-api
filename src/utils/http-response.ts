@@ -6,6 +6,7 @@ export enum HTTPStatus {
     BAD_REQUEST = 400,
     NOT_FOUND = 404,
     INTERNAL_SERVER_ERROR = 500,
+    NO_CONTENT = 204
   }
 
   export enum HTTPMessage {
@@ -13,7 +14,8 @@ export enum HTTPStatus {
     UPDATED = "Record updated successfully",
     DELETED = "Record deleted successfully",
     NOT_FOUND = "No record found",
-    SOMETHING_WENT_WRONG = 'Something went wrong'
+    SOMETHING_WENT_WRONG = 'Something went wrong',
+    NOT_UPDATED = 'No record updated'
   }
 
   export interface ApiResponseProps<T> {
