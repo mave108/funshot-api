@@ -49,14 +49,15 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
                 description = '', 
                 uid = 1, 
                 tags = [],
-                video_id = '', 
+                media_id = '', 
                 s3_url = ''
                 } = req.body as PostProps;                        
             const postObj = {
+                'id': hashId,
                 'title': title,
                 'description': description,
                 'tag_identifier': `POST::${hashId}::TAGS`,
-                'video_id': video_id,
+                'media_id': media_id,
                 's3_url': s3_url,
                 'uid': uid,
                 'view': 1,
@@ -112,6 +113,33 @@ router.delete('/', async (req: Request, res: Response, next:NextFunction) => {
         .setMsg(HTTPMessage.SOMETHING_WENT_WRONG)
         .send(); 
   }
+});
+
+router.put('/:post_id', async (req: Request, res: Response, next:NextFunction) => {
+      
+    try {
+      const {...post} = req.body;      
+      const {post_id} = req.params;
+      //get post
+      const postdata = await redisClient.hGetAll(`POST::${post_id}`);
+      if (post) {         
+      await redisClient.hSet(`POST::${post_id}`, {...postdata, ...post});      
+          return  new HTTPResponse(res)
+          .setStatus(HTTPStatus.OK)
+          .setMsg(HTTPMessage.UPDATED)                       
+          .send();      
+      }    
+      return new HTTPResponse(res)
+                .setStatus(HTTPStatus.BAD_REQUEST)                
+                .setMsg(HTTPMessage.NOT_FOUND)                
+                .send();  
+    } catch (e) {
+        return new HTTPResponse(res)
+                .setStatus(HTTPStatus.INTERNAL_SERVER_ERROR)
+                .setMsg(HTTPMessage.SOMETHING_WENT_WRONG)  
+                .setData('body', req.body)              
+                .send();
+    }    
 });
 
 export default router;
