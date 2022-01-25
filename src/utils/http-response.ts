@@ -13,6 +13,7 @@ export enum HTTPStatus {
     UPDATED = "Record updated successfully",
     DELETED = "Record deleted successfully",
     NOT_FOUND = "No record found",
+    SOMETHING_WENT_WRONG = 'Something went wrong'
   }
 
   export interface ApiResponseProps<T> {
