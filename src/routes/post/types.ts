@@ -5,7 +5,7 @@ export interface PostProps {
     description: string;
     uid: number
     tags: string[];
-    video_id: string;
+    media_id: string;
     s3_url: string;
     date?: number
 }
