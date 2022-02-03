@@ -8,12 +8,12 @@ let router = Router();
 
 router.get('/', async (req: Request, res: Response, next:NextFunction) => {
     try {
-        const tags:TagProps = await redisClient.hGetAll('tags'); 
+        const tags:TagProps = await redisClient.hGetAll('TAGS'); 
         const tagObject = {...tags};
         const tagArr = []; 
         for(var propName in tagObject) {            
             if(tagObject.hasOwnProperty(propName)) {                
-                tagArr.push({name: propName,id:  tags[propName]});                
+                tagArr.push({id: propName,name:  tags[propName]});                
             }
         }      
         return new HTTPResponse(res)
@@ -29,14 +29,14 @@ router.get('/', async (req: Request, res: Response, next:NextFunction) => {
 
 router.post('/', async (req: Request, res: Response,next:NextFunction) => {
     const  tagsToAdd: string[]  = req.body; 
-    const tagHashes = tagsToAdd.reduce((acc,curr)=> ({...acc,[curr]:uuidv4()}), {});
+    const tagHashes = tagsToAdd.reduce((acc,curr)=> ({...acc,[uuidv4()]:curr}), {});
     const tagsCreated: string[] = Object.values(tagHashes);
     try {
-        const redisRes = await redisClient.hSet('tags', tagHashes);                
+        const redisRes = await redisClient.hSet('TAGS', tagHashes);                
         return new HTTPResponse(res)
                    .setStatus(HTTPStatus.OK)
                    .setMsg(HTTPMessage.CREATED)
-                   .setData('tags',tagsCreated)
+                   .setData('tags',tagHashes)
                    .send();
     } catch (e) {      
         return next(e);
@@ -46,7 +46,7 @@ router.post('/', async (req: Request, res: Response,next:NextFunction) => {
 router.delete('/',async(req: Request, res: Response, next: NextFunction) => {
     try {
         const  tagsToDel: string[]  = req.body; 
-        const redisRes = await redisClient.hDel('tags', tagsToDel);
+        const redisRes = await redisClient.hDel('TAGS', tagsToDel);
         return new HTTPResponse(res)
                    .setStatus(HTTPStatus.OK)
                    .setSuccess(!!redisRes)

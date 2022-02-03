@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import redisClient from '../../db/redis';
 import HTTPResponse, { HTTPStatus, HTTPMessage } from '../../utils/http-response';
 import S3 from 'aws-sdk/clients/s3';
-import concat from 'concat-stream'
 
 let router = Router();
 
@@ -41,10 +40,10 @@ router.get('/image/:id', async (req: Request, res: Response, next:NextFunction) 
             res.end(null, 'binary');            
         }
 
-        return new HTTPResponse(res)
-                    .setStatus(HTTPStatus.NOT_FOUND)
-                    .setMsg(HTTPMessage.NOT_FOUND)
-                    .send();
+        // return new HTTPResponse(res)
+        //             .setStatus(HTTPStatus.NOT_FOUND)
+        //             .setMsg(HTTPMessage.NOT_FOUND)
+        //             .send();
         
     } catch (e) {
         return next(e);

@@ -21,8 +21,13 @@ router.get('/', async (req: Request, res: Response, next:NextFunction) => {
             //get post
             const post = await redisClient.hGetAll(`POST::${pid}`);
             //get tags
-            const tags = await redisClient.sMembers(post.tag_identifier);                        
-            posts.push({...post, tags: [...tags]});
+            const tags = await redisClient.sMembers(post.tag_identifier);  
+            let postTagArr;            
+            if (tags) {                
+                const postTags = await redisClient.hmGet('TAGS', tags);
+                postTagArr = postTags.map((tagName, index) => ({name: tagName,id: tags[index]}));                
+            }                      
+            posts.push({...post, tags: postTagArr});
         })); 
         return new HTTPResponse(res)
                 .setStatus(HTTPStatus.OK)
@@ -65,8 +70,7 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
                 'timestamp': new Date().getTime()
             }                
             let tagResp: number = 0;
-            const hashResp = await redisClient.hSet(`POST::${hashId}`, postObj);  
-            console.log("tags", tags);
+            const hashResp = await redisClient.hSet(`POST::${hashId}`, postObj);              
             //save tags to set
             if (tags.length > 0) {                
                 tagResp = await redisClient.sAdd(`POST::${hashId}::TAGS`, tags);   
