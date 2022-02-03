@@ -75,6 +75,7 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
                     Bucket: 'funshot-media',
                     Key: `${s3url}${fileExt}`,
                     Body: readStream,
+                    ContentType:'image/jpeg',
                   };                               
                 s3.putObject(s3Params).send((err,data) => {
                     if (err) {
