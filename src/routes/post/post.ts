@@ -51,7 +51,8 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
                 tags = [],
                 media_id = '', 
                 s3_url = ''
-                } = req.body as PostProps;                        
+                } = req.body as PostProps;      
+                console.log("body", req.body);                  
             const postObj = {
                 'id': hashId,
                 'title': title,
@@ -63,9 +64,13 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
                 'view': 1,
                 'timestamp': new Date().getTime()
             }                
+            let tagResp: number = 0;
             const hashResp = await redisClient.hSet(`POST::${hashId}`, postObj);  
+            console.log("tags", tags);
             //save tags to set
-            const tagResp = await redisClient.sAdd(`POST::${hashId}::TAGS`, tags);   
+            if (tags.length > 0) {                
+                tagResp = await redisClient.sAdd(`POST::${hashId}::TAGS`, tags);   
+            }            
             //save post it to user set
             const userResp = await redisClient.sAdd(`USER::${uid}::POSTS`, hashId); 
             // insert post id to post list
@@ -77,6 +82,7 @@ router.post('/', async (req: Request, res: Response, next:NextFunction) => {
                 .setData('post', {...postObj,recordCreated: (tagResp+hashResp+listResp+userResp)})
                 .send();                                  
           } catch (e) {
+              console.log("post creation error", e);
             new HTTPResponse(res)
             .setStatus(HTTPStatus.INTERNAL_SERVER_ERROR)
             .setMsg(HTTPMessage.SOMETHING_WENT_WRONG)
